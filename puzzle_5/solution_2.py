@@ -1,24 +1,39 @@
 import re
+from pyinter import IntervalSet, interval
 
 def remap_nums(num_range, mappings):
-    min_num = float("inf")
-    for num in range(*num_range):
-        new_num = num
-        for mapping in mappings:
-            for maps in mapping:
-                dest_start, source_start, range_val = maps
-                if new_num >= source_start and new_num < (source_start+range_val):
-                    diff = new_num - source_start
-                    new_num = dest_start + diff
-                    break  # break to stop the new_num value to be changed further in this round of mapping
+    interval_set = IntervalSet([interval.closedopen(num_range[0], num_range[1])])
 
-        min_num = min(min_num, new_num)
-    return min_num
+    # print("start", interval_set)
+    for mapping in mappings:
+        mapped_interval_set = IntervalSet()
+        for maps in mapping:
+            dest_start, source_start, range_val = maps
+            source_interval = interval.closedopen(source_start, source_start + range_val)
+            interval_intersection = interval_set.intersection([source_interval])
+            for intersect in interval_intersection:
+                # print(maps)
+                # print("intersection", intersect)
+                interval_set = interval_set.difference(intersect)
+                # print("remainder", interval_set)
+
+
+                new_start = dest_start + (intersect.lower_value - source_start)
+                new_end = dest_start + (intersect.upper_value - source_start)
+                mapped_interval_set.add(interval.closedopen(new_start, new_end))
+
+        # Any remaining interval get added back in to mapped interval set as is
+        mapped_interval_set = mapped_interval_set.union(interval_set)
+        # print("map_done", mapped_interval_set)
+
+        interval_set = mapped_interval_set
+
+    # print(interval_set)
+    return min([i.lower_value for i in iter(interval_set)])
 
 
 mappings = []
 num_ranges = []
-sum = 0
 
 with open('input.txt') as f:
     mapping = []
@@ -29,7 +44,6 @@ with open('input.txt') as f:
             seeds = [int(i) for i in re.findall(r"(\d+)", line)]
             for i in range(0, len(seeds)-1, 2):
                 num_ranges.append((seeds[i], seeds[i]+seeds[i+1]))
-                sum += seeds[i+1]
         elif "map" in line:
             map_block = True
         elif map_block:
@@ -42,7 +56,6 @@ with open('input.txt') as f:
                 mapping = []
     mappings.append(mapping)
 
-print(sum)
 nums = [remap_nums(num_range, mappings) for num_range in num_ranges]
 print(nums)
 print(min(nums))

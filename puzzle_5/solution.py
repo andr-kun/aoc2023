@@ -13,7 +13,7 @@ def remap_nums(number_list, mapping):
 
     return new_nums
 
-with open('input.txt') as f:
+with open('test_input.txt') as f:
     mapping = []
     nums = []
     map_block = False
@@ -33,5 +33,5 @@ with open('input.txt') as f:
                 print(nums)
 
 nums = remap_nums(nums, mapping)
-print(nums)
+print(sorted(nums))
 print(min(nums))
