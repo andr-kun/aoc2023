@@ -1,5 +1,6 @@
 from collections import defaultdict
 import time
+import numpy as np
 
 # all coord and dir is in (x, y) format
 
@@ -30,14 +31,6 @@ def tilt_col_row(col, row, dir):
 				platform[y][x] = '.'
 				platform[swap_y][swap_x] = 'O'
 				free_spot = (swap_x-dir[0], swap_y-dir[1])
-
-def cache_state(dir):
-	compressed_mat = hash("".join(["".join(row) for row in platform]))
-	if (dir, compressed_mat) in cached_state:
-		return True
-	else:
-		cached_state.add((dir, compressed_mat))
-	return False
 	
 def run_cycle_alt():
 	directions = [(0,-1), (-1,0), (0,1), (1,0)]
@@ -74,10 +67,11 @@ def run_cycle():
 def get_tilted_load(cycles):
 	
 	for i in range(cycles):
-		run_cycle()
-		print('Cycle',i)
-		if cache_state(dir):
-			break
+		run_cycle_alt()
+		#print('Cycle',i)
+		#for line in platform:
+		#	print(''.join(line))
+		#print('=========')
 	
 	load = 0
 	for y in range(height):
@@ -94,9 +88,12 @@ with open('input.txt') as f:
 		line = line.strip()
 		platform.append([c for c in line])
 	
+	#platform = np.array(platform)
+	#print(platform)
+	
 	t = time.time()
 	width, height = len(platform[0]), len(platform)
-	load_total = get_tilted_load(1000)
+	load_total = get_tilted_load(100)
 	print(time.time()-t)
 
 print(load_total)
